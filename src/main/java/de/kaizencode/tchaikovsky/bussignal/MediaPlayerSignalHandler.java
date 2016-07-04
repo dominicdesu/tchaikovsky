@@ -17,7 +17,7 @@
 package de.kaizencode.tchaikovsky.bussignal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +63,8 @@ public class MediaPlayerSignalHandler {
         if (speakerChangedListeners.containsKey(busName)) {
             speakerChangedListeners.get(busName).add(listener);
         } else {
-            speakerChangedListeners.put(busName, Arrays.asList(listener));
+            speakerChangedListeners.put(busName,
+                    new ArrayList<SpeakerChangedListener>(Collections.singleton(listener)));
         }
         logger.debug("New SpeakerChangedListener added for bus " + busName);
     }

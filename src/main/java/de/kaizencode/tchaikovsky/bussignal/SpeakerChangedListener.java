@@ -55,7 +55,7 @@ public interface SpeakerChangedListener {
      * @param volume
      *            The new volume of the speaker
      */
-    public void onVolumeChanged(short volume);
+    public void onVolumeChanged(int volume);
 
     /**
      * @param mute

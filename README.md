@@ -1,7 +1,7 @@
 ## Introduction
 Tchaikovsky is a Java library for discovering and controlling [AllPlay™](https://www.qualcomm.com/products/allplay)-compatible speakers (e.g. the Panasonic ALL series). 
 The implementation is based on the [AllJoyn framework](https://allseenalliance.org/framework).
-Please note that while the AllJoyn framework is able to connect to a variety of compatible devices, this sole purpose of the Tchaikovsky library is to control AllPlay devices.
+Please note that while the AllJoyn framework is able to connect to a variety of compatible devices, the sole purpose of the Tchaikovsky library is to control AllPlay devices.
 
 ## Native library
 All the AllJoyn functionality is available through a native C++ library. When using Tchaikovsky, you need to have this library in path specified by java.library.path, else it will not work.
@@ -35,7 +35,7 @@ speaker.addSpeakerChangedListener(mySpeakerChangedListener);
 speaker.connect();
 ```
 
-The `mySpeakerChangedListener` implements the `SpeakerChangedListener` interface. this interface has various method which are called if the state of the speaker changes.
+The `mySpeakerChangedListener` implements the `SpeakerChangedListener` interface. This interface has various method which are called if the state of the speaker changes.
 
 To control the speaker, the speaker object has various method which can be called, e.g.
 
