@@ -69,6 +69,13 @@ public class AllPlay {
     }
 
     /**
+     * @return True if currently connected the the AllJoyn bus, else false
+     */
+    public boolean isConnected() {
+        return busAttachment.isConnected();
+    }
+
+    /**
      * Start the discovery of AllPlay speakers. Bus connection has to be established first using {@link #connect()}
      * method.
      * 
