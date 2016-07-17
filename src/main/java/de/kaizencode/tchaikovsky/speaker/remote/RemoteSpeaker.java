@@ -40,6 +40,7 @@ public class RemoteSpeaker implements Speaker {
     private final Logger logger = LoggerFactory.getLogger(RemoteSpeaker.class);
 
     private final SpeakerBusHandler busHandler;
+    private int sessionTimeoutInSec = 120;
 
     private ProxyBusObject allPlayObject;
     private MediaPlayerInterface mediaPlayerInterface;
@@ -71,7 +72,8 @@ public class RemoteSpeaker implements Speaker {
     @Override
     public void connect() throws ConnectionException {
 
-        allPlayObject = busHandler.connect(this);
+        allPlayObject = busHandler.connect();
+        busHandler.setSessionTimeout(sessionTimeoutInSec);
 
         mediaPlayerInterface = allPlayObject.getInterface(MediaPlayerInterface.class);
         volume = new RemoteVolume(allPlayObject.getInterface(VolumeInterface.class));
@@ -94,13 +96,14 @@ public class RemoteSpeaker implements Speaker {
     }
 
     @Override
-    public void addSpeakerChangedListener(SpeakerChangedListener listener) {
-        busHandler.addSpeakerChangedListener(listener);
+    public boolean ping(int timeoutInMs) {
+        return busHandler.ping(timeoutInMs);
     }
 
     @Override
-    public void removeSpeakerChangedListener(SpeakerChangedListener listener) {
-        busHandler.removeSpeakerChangedListener(listener);
+    public void setSessionTimeout(int timeoutInSec) {
+        sessionTimeoutInSec = timeoutInSec;
+        busHandler.setSessionTimeout(sessionTimeoutInSec);
     }
 
     @Override
@@ -274,6 +277,16 @@ public class RemoteSpeaker implements Speaker {
     @Override
     public void enableConcurrentCallbacks() {
         busHandler.enableConcurrentCallbacks();
+    }
+
+    @Override
+    public void addSpeakerChangedListener(SpeakerChangedListener listener) {
+        busHandler.addSpeakerChangedListener(listener);
+    }
+
+    @Override
+    public void removeSpeakerChangedListener(SpeakerChangedListener listener) {
+        busHandler.removeSpeakerChangedListener(listener);
     }
 
     @Override

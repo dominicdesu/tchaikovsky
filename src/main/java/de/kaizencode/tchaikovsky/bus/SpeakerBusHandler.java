@@ -19,7 +19,6 @@ package de.kaizencode.tchaikovsky.bus;
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.Mutable;
 import org.alljoyn.bus.ProxyBusObject;
-import org.alljoyn.bus.SessionListener;
 import org.alljoyn.bus.SessionOpts;
 import org.alljoyn.bus.Status;
 import org.slf4j.Logger;
@@ -47,8 +46,9 @@ public class SpeakerBusHandler {
     private final MediaPlayerSignalHandler signalHandler;
     private final BusAttachment busAttachment;
     private final String speakerBusName;
-    private short port;
+    private final short port;
     private Mutable.IntegerValue sessionId;
+    private final SpeakerSessionListener sessionListener = new SpeakerSessionListener();
 
     /**
      * Creates a new {@link SpeakerBusHandler}.
@@ -73,13 +73,11 @@ public class SpeakerBusHandler {
      * Establishes a connection with the given {@link Speaker} and returns the {@link ProxyBusObject} for further
      * communication.
      * 
-     * @param speaker
-     *            The {@link Speaker} to connect to
      * @return {@link ProxyBusObject} for further communication though AllPlay interfaces
      * @throws ConnectionException
      *             Exception if connection could not be established
      */
-    public ProxyBusObject connect(Speaker speaker) throws ConnectionException {
+    public ProxyBusObject connect() throws ConnectionException {
         busAttachment.enableConcurrentCallbacks();
         joinSession();
         return getProxyBusObject();
@@ -90,6 +88,20 @@ public class SpeakerBusHandler {
      */
     public void disconnect() {
         busAttachment.leaveSession(sessionId.value);
+    }
+
+    /**
+     * Ping the speaker.
+     * 
+     * @param timeoutInMs
+     *            Timeout after which the ping fails
+     * @return True if the ping was successful, else false
+     */
+    public boolean ping(int timeoutInMs) {
+        logger.debug("Pinging speaker on bus " + speakerBusName);
+        Status status = busAttachment.ping(speakerBusName, timeoutInMs);
+        logger.debug("Ping returned with status " + status.toString());
+        return status == Status.OK;
     }
 
     /**
@@ -104,6 +116,13 @@ public class SpeakerBusHandler {
      */
     public void enableConcurrentCallbacks() {
         busAttachment.enableConcurrentCallbacks();
+    }
+
+    /**
+     * @return The {@link SpeakerSessionListener}
+     */
+    public SpeakerSessionListener getSessionListener() {
+        return sessionListener;
     }
 
     /**
@@ -130,14 +149,23 @@ public class SpeakerBusHandler {
         sessionId = new Mutable.IntegerValue();
         logger.debug("Joining session with busname [" + speakerBusName + "], port [" + port + "], sessionId ["
                 + sessionId.value + "]");
+
         Status status = busAttachment.joinSession(speakerBusName, port, sessionId, createSessionOptions(),
-                new SessionListener());
+                sessionListener);
         if (status != Status.OK) {
             throw new ConnectionException("Unable to join session " + sessionId.value + " on bus " + speakerBusName,
                     status);
         }
         logger.debug("Joined session from local bus [" + busAttachment.getUniqueName() + "] to remote bus ["
                 + speakerBusName + "] on sessionId [" + sessionId.value + "]");
+    }
+
+    /**
+     * @param timeoutInSec
+     *            The timeout in seconds after which a session is declared as lost
+     */
+    public void setSessionTimeout(int timeoutInSec) {
+        busAttachment.setLinkTimeout(sessionId.value, new Mutable.IntegerValue(timeoutInSec));
     }
 
     private ProxyBusObject getProxyBusObject() {
@@ -156,5 +184,4 @@ public class SpeakerBusHandler {
         sessionOpts.transports = SessionOpts.TRANSPORT_ANY;
         return sessionOpts;
     }
-
 }

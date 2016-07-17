@@ -88,6 +88,24 @@ public interface Speaker {
     void disconnect();
 
     /**
+     * Pings the speaker.
+     * 
+     * @param timeoutInMs
+     *            The timeout after which the ping fails
+     * @return True if a response was received for the ping, else false
+     */
+    boolean ping(int timeoutInMs);
+
+    /**
+     * Set the timeout for a session. Default is 120 seconds. AllJoyn defines 40 seconds as the minimum.
+     * 
+     * @param timeoutInSec
+     *            Timeout for a session in seconds. If timeout occurs,
+     *            {@link SpeakerConnectionListener#onConnectionLost(int, int)} is called.
+     */
+    void setSessionTimeout(int timeoutInSec);
+
+    /**
      * @return Current {@link PlayState} of the speaker
      * @throws SpeakerException
      *             if {@link PlayState} cannot be retrieved
