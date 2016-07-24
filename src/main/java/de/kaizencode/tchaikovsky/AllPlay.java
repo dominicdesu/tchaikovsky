@@ -65,6 +65,7 @@ public class AllPlay {
      */
     public void disconnect() {
         logger.debug("Disconnecting from AllJoyn bus " + busAttachment.getUniqueName());
+        busAttachment.unregisterAboutListener(aboutListener);
         busAttachment.disconnect();
     }
 

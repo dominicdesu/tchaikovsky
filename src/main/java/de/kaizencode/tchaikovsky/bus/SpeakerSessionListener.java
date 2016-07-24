@@ -16,9 +16,14 @@
  */
 package de.kaizencode.tchaikovsky.bus;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.alljoyn.bus.SessionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.kaizencode.tchaikovsky.speaker.Speaker;
 
 /**
  * Specific implementation of {@link SessionListener}
@@ -28,10 +33,29 @@ import org.slf4j.LoggerFactory;
 public class SpeakerSessionListener extends SessionListener {
 
     private final Logger logger = LoggerFactory.getLogger(SpeakerSessionListener.class);
+    private final List<SpeakerConnectionListener> listeners = new ArrayList<>();
+
+    private final Speaker speaker;
+
+    public SpeakerSessionListener(Speaker speaker) {
+        this.speaker = speaker;
+    }
+
+    public void addConnectionListener(SpeakerConnectionListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeConnectionListener(SpeakerConnectionListener listener) {
+        listeners.remove(listener);
+    }
 
     @Override
     public void sessionLost(int sessionId, int reason) {
-        logger.warn("Session lost " + reason);
+        logger.info("Session lost for speaker " + speaker + " with reason " + reason);
+
+        for (SpeakerConnectionListener listener : listeners) {
+            listener.onConnectionLost(speaker, reason);
+        }
         super.sessionLost(sessionId, reason);
     }
 

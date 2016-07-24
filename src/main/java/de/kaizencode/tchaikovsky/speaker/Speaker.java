@@ -18,6 +18,7 @@ package de.kaizencode.tchaikovsky.speaker;
 
 import java.util.List;
 
+import de.kaizencode.tchaikovsky.bus.SpeakerConnectionListener;
 import de.kaizencode.tchaikovsky.bussignal.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
 import de.kaizencode.tchaikovsky.exception.SpeakerException;
@@ -88,6 +89,11 @@ public interface Speaker {
     void disconnect();
 
     /**
+     * @return Flag if a connection to the speaker is established or not
+     */
+    boolean isConnected();
+
+    /**
      * Pings the speaker.
      * 
      * @param timeoutInMs
@@ -101,7 +107,7 @@ public interface Speaker {
      * 
      * @param timeoutInSec
      *            Timeout for a session in seconds. If timeout occurs,
-     *            {@link SpeakerConnectionListener#onConnectionLost(int, int)} is called.
+     *            {@link SpeakerConnectionListener#onConnectionLost(Speaker, int)} is called
      */
     void setSessionTimeout(int timeoutInSec);
 
@@ -274,6 +280,20 @@ public interface Speaker {
      *            The {@link SpeakerChangedListener} to remove
      */
     void removeSpeakerChangedListener(SpeakerChangedListener listener);
+
+    /**
+     * Adds a listener which is notified when the connection state of the speaker changes.
+     * 
+     * @param listener
+     *            The {@link SpeakerConnectionListener} to add
+     */
+    void addSpeakerConnectionListener(SpeakerConnectionListener listener);
+
+    /**
+     * @param listener
+     *            The {@link SpeakerConnectionListener} to remove
+     */
+    void removeSpeakerConnectionListener(SpeakerConnectionListener listener);
 
     /**
      * Enables concurrent callbacks. This method needs to be called if a request is triggered from within a callback

@@ -19,6 +19,7 @@ package de.kaizencode.tchaikovsky.bus;
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.Mutable;
 import org.alljoyn.bus.ProxyBusObject;
+import org.alljoyn.bus.SessionListener;
 import org.alljoyn.bus.SessionOpts;
 import org.alljoyn.bus.Status;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class SpeakerBusHandler {
     private final String speakerBusName;
     private final short port;
     private Mutable.IntegerValue sessionId;
-    private final SpeakerSessionListener sessionListener = new SpeakerSessionListener();
+    private SessionListener sessionListener = new SessionListener();
 
     /**
      * Creates a new {@link SpeakerBusHandler}.
@@ -119,10 +120,11 @@ public class SpeakerBusHandler {
     }
 
     /**
-     * @return The {@link SpeakerSessionListener}
+     * @param listener
+     *            {@link SpeakerSessionListener} to be informed in case if session events
      */
-    public SpeakerSessionListener getSessionListener() {
-        return sessionListener;
+    public void setSessionListener(SpeakerSessionListener listener) {
+        this.sessionListener = listener;
     }
 
     /**

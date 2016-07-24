@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.kaizencode.tchaikovsky.bus.SpeakerBusHandler;
+import de.kaizencode.tchaikovsky.bus.SpeakerConnectionListener;
+import de.kaizencode.tchaikovsky.bus.SpeakerSessionListener;
 import de.kaizencode.tchaikovsky.businterface.MCUInterface;
 import de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface;
 import de.kaizencode.tchaikovsky.businterface.VolumeInterface;
@@ -35,12 +37,14 @@ import de.kaizencode.tchaikovsky.speaker.Speaker;
 import de.kaizencode.tchaikovsky.speaker.SpeakerDetails;
 import de.kaizencode.tchaikovsky.speaker.Volume;
 
-public class RemoteSpeaker implements Speaker {
+public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
     private final Logger logger = LoggerFactory.getLogger(RemoteSpeaker.class);
 
     private final SpeakerBusHandler busHandler;
-    private int sessionTimeoutInSec = 120;
+    private int sessionTimeoutInSec = 40;
+    private boolean isConnected = false;
+    private final SpeakerSessionListener sessionListener;
 
     private ProxyBusObject allPlayObject;
     private MediaPlayerInterface mediaPlayerInterface;
@@ -51,6 +55,9 @@ public class RemoteSpeaker implements Speaker {
 
     public RemoteSpeaker(SpeakerBusHandler bus, SpeakerDetails details) {
         this.busHandler = bus;
+        sessionListener = new SpeakerSessionListener(this);
+        sessionListener.addConnectionListener(this);
+        busHandler.setSessionListener(sessionListener);
         this.details = details;
     }
 
@@ -74,6 +81,7 @@ public class RemoteSpeaker implements Speaker {
 
         allPlayObject = busHandler.connect();
         busHandler.setSessionTimeout(sessionTimeoutInSec);
+        isConnected = true;
 
         mediaPlayerInterface = allPlayObject.getInterface(MediaPlayerInterface.class);
         volume = new RemoteVolume(allPlayObject.getInterface(VolumeInterface.class));
@@ -93,6 +101,16 @@ public class RemoteSpeaker implements Speaker {
     @Override
     public void disconnect() {
         busHandler.disconnect();
+    }
+
+    @Override
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    @Override
+    public void onConnectionLost(Speaker speaker, int alljoynReasonCode) {
+        isConnected = false;
     }
 
     @Override
@@ -287,6 +305,16 @@ public class RemoteSpeaker implements Speaker {
     @Override
     public void removeSpeakerChangedListener(SpeakerChangedListener listener) {
         busHandler.removeSpeakerChangedListener(listener);
+    }
+
+    @Override
+    public void addSpeakerConnectionListener(SpeakerConnectionListener listener) {
+        sessionListener.addConnectionListener(listener);
+    }
+
+    @Override
+    public void removeSpeakerConnectionListener(SpeakerConnectionListener listener) {
+        sessionListener.removeConnectionListener(listener);
     }
 
     @Override
