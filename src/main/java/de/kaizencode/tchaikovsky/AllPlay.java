@@ -16,6 +16,9 @@
  */
 package de.kaizencode.tchaikovsky;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.Status;
 import org.slf4j.Logger;
@@ -34,6 +37,7 @@ import de.kaizencode.tchaikovsky.exception.DiscoveryException;
 public class AllPlay {
 
     private final Logger logger = LoggerFactory.getLogger(AllPlay.class);
+    List<SpeakerAnnouncedListener> speakerAnnounedListeners = new ArrayList<>();
 
     static {
         System.loadLibrary("alljoyn_java");
@@ -41,11 +45,10 @@ public class AllPlay {
 
     private static final String INTERFACES[] = { "net.allplay.MediaPlayer" };
 
-    private final BusAttachment busAttachment;
+    private BusAttachment busAttachment;
     private SpeakerAboutListener aboutListener;
 
     public AllPlay() {
-        busAttachment = new BusAttachment("Tchaikovsky", BusAttachment.RemoteMessage.Receive);
     }
 
     /**
@@ -55,8 +58,12 @@ public class AllPlay {
      *             Exception occurred during connection setup
      */
     public void connect() throws ConnectionException {
+        busAttachment = new BusAttachment("Tchaikovsky", BusAttachment.RemoteMessage.Receive);
         connectToBus();
         aboutListener = new SpeakerAboutListener(busAttachment);
+        for (SpeakerAnnouncedListener listener : speakerAnnounedListeners) {
+            aboutListener.addSpeakerAnnouncedListener(listener);
+        }
         busAttachment.registerAboutListener(aboutListener);
     }
 
@@ -64,16 +71,20 @@ public class AllPlay {
      * Disconnect from the AllJoyn bus.
      */
     public void disconnect() {
-        logger.debug("Disconnecting from AllJoyn bus " + busAttachment.getUniqueName());
-        busAttachment.unregisterAboutListener(aboutListener);
-        busAttachment.disconnect();
+        if (isConnected()) {
+            logger.debug("Disconnecting from AllJoyn bus " + busAttachment.getUniqueName());
+            busAttachment.unregisterAboutListener(aboutListener);
+            busAttachment.cancelWhoImplements(INTERFACES);
+            busAttachment.disconnect();
+            busAttachment = null;
+        }
     }
 
     /**
      * @return True if currently connected the the AllJoyn bus, else false
      */
     public boolean isConnected() {
-        return busAttachment.isConnected();
+        return busAttachment != null && busAttachment.isConnected();
     }
 
     /**
@@ -88,6 +99,26 @@ public class AllPlay {
     }
 
     /**
+     * Reconnect to the AllJoyn bus.
+     * 
+     * @throws ConnectionException
+     *             Error during reconnection
+     */
+    public void reconnect() throws ConnectionException {
+        disconnect();
+        connect();
+    }
+
+    /**
+     * Cancel listening for new AllPlay devices
+     */
+    public void cancelDiscovery() {
+        if (isConnected()) {
+            busAttachment.cancelWhoImplements(INTERFACES);
+        }
+    }
+
+    /**
      * Add a listener for discovered speakers.
      * 
      * @param listener
@@ -96,10 +127,10 @@ public class AllPlay {
      *             if the listener cannot be added
      */
     public void addSpeakerAnnouncedListener(SpeakerAnnouncedListener listener) throws DiscoveryException {
-        if (aboutListener == null) {
-            throw new DiscoveryException("Unable to add listener. Connection to bus must be established first");
+        speakerAnnounedListeners.add(listener);
+        if (aboutListener != null) {
+            aboutListener.addSpeakerAnnouncedListener(listener);
         }
-        aboutListener.addSpeakerAnnouncedListener(listener);
     }
 
     /**
@@ -109,6 +140,7 @@ public class AllPlay {
      *            The listener to be removed
      */
     public void removeSpeakerAnnouncedListener(SpeakerAnnouncedListener listener) {
+        speakerAnnounedListeners.remove(listener);
         if (aboutListener != null) {
             aboutListener.removeSpeakerAnnouncedListener(listener);
         }

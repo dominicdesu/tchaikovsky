@@ -44,7 +44,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     private final SpeakerBusHandler busHandler;
     private int sessionTimeoutInSec = 40;
     private boolean isConnected = false;
-    private final SpeakerSessionListener sessionListener;
+    private SpeakerSessionListener sessionListener;
 
     private ProxyBusObject allPlayObject;
     private MediaPlayerInterface mediaPlayerInterface;
@@ -55,9 +55,6 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
     public RemoteSpeaker(SpeakerBusHandler bus, SpeakerDetails details) {
         this.busHandler = bus;
-        sessionListener = new SpeakerSessionListener(this);
-        sessionListener.addConnectionListener(this);
-        busHandler.setSessionListener(sessionListener);
         this.details = details;
     }
 
@@ -78,6 +75,10 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
     @Override
     public void connect() throws ConnectionException {
+
+        sessionListener = new SpeakerSessionListener(this);
+        sessionListener.addConnectionListener(this);
+        busHandler.setSessionListener(sessionListener);
 
         allPlayObject = busHandler.connect();
         busHandler.setSessionTimeout(sessionTimeoutInSec);
@@ -100,6 +101,8 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
     @Override
     public void disconnect() {
+        allPlayObject = null;
+        isConnected = false;
         busHandler.disconnect();
     }
 

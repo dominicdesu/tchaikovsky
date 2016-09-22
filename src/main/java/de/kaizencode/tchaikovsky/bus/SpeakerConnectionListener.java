@@ -26,7 +26,7 @@ import de.kaizencode.tchaikovsky.speaker.Speaker;
 public interface SpeakerConnectionListener {
 
     /**
-     * Called if the coneection to the {@link Speaker} has been lost
+     * Called if the connection to the {@link Speaker} has been lost
      * 
      * @param speaker
      *            The {@link Speaker} to which the connection has been lost
