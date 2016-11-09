@@ -16,6 +16,8 @@
  */
 package de.kaizencode.tchaikovsky.bussignal;
 
+import java.util.Map;
+
 import de.kaizencode.tchaikovsky.speaker.PlayState;
 import de.kaizencode.tchaikovsky.speaker.Speaker;
 import de.kaizencode.tchaikovsky.speaker.Speaker.LoopMode;
@@ -68,5 +70,15 @@ public interface SpeakerChangedListener {
      *            True if the volume control has been enabled, false if it has been disabled
      */
     public void onVolumeControlChanged(boolean enabled);
-
+    
+    /**
+     * @param zoneId
+     *            The new zone id of the speaker
+     * @param timestamp
+     *            The timestamp of the speaker
+     * @param slaves
+     *            The slaves of the speaker
+     */
+    public void onZoneChanged(String zoneId, int timestamp, Map<String,Integer> slaves);
+    
 }

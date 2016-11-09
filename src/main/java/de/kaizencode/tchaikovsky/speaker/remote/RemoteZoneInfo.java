@@ -16,13 +16,8 @@
  */
 package de.kaizencode.tchaikovsky.speaker.remote;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Variant;
-import org.alljoyn.bus.VariantTypeReference;
 import org.alljoyn.bus.annotation.Position;
 import org.alljoyn.bus.annotation.Signature;
 
@@ -52,29 +47,32 @@ public class RemoteZoneInfo implements ZoneInfo {
         return zoneTimestamp;
     }
 
-    // @Override
-    public void getLeadPlayerName() {
+    @Override
+    public boolean isLeadPlayer() {
         try {
             if ("s".equals(leadPlayerName.getSignature())) {
-                System.out.println("leadPlayerName " + leadPlayerName.getObject(String.class));
-            } else if ("a{si}".equals(leadPlayerName.getSignature())) {
-                Map<String, Integer> map = leadPlayerName
-                        .getObject(new VariantTypeReference<TreeMap<String, Integer>>() {
-                        });
-                System.out.println("Size: " + map.size());
-                for (Entry<String, Integer> entry : map.entrySet()) {
-                    System.out.println("String: " + entry.getKey() + ", " + entry.getValue());
-                }
-            } else {
-                System.out.println("Signature: " + leadPlayerName.getSignature());
+                return false;
             }
         } catch (BusException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        // return leadPlayerName;
+        return true;
     }
 
+    @Override
+    public String getLeadPlayerID() {
+        try {
+            if ("s".equals(leadPlayerName.getSignature())) {
+                return leadPlayerName.getObject(String.class).replaceAll("net.allplay.MediaPlayer.i", "");
+            }
+        } catch (BusException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
     @Override
     public String toString() {
         return zoneId + "-" + zoneTimestamp + "-" + leadPlayerName;

@@ -44,6 +44,7 @@ public class MediaPlayerSignalHandler {
     private final Map<String, List<SpeakerChangedListener>> speakerChangedListeners = new HashMap<>();
     private static final String MEDIA_PLAYER_INTERFACE = "de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface";
     private static final String VOLUME_INTERFACE = "de.kaizencode.tchaikovsky.businterface.VolumeInterface";
+    private static final String ZONEMANAGER_INTERFACE = "de.kaizencode.tchaikovsky.businterface.ZoneManagerInterface";
 
     private final BusAttachment busAttachment;
 
@@ -155,7 +156,15 @@ public class MediaPlayerSignalHandler {
             listener.onVolumeControlChanged(enabled);
         }
     }
-
+   
+    @BusSignalHandler(iface = ZONEMANAGER_INTERFACE, signal = "onZoneChanged")
+    public void onZoneChanged(String zoneId, int timestamp, Map<String,Integer> slaves) {
+        logSignalReceived("Zone changed");
+        for (SpeakerChangedListener listener : findListeners()) {
+            listener.onZoneChanged(zoneId, timestamp, slaves);
+        }
+    }
+    
     private List<SpeakerChangedListener> findListeners() {
         String busName = busAttachment.getMessageContext().sender;
         if (speakerChangedListeners.containsKey(busName)) {

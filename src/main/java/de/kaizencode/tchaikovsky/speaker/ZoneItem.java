@@ -16,22 +16,20 @@
  */
 package de.kaizencode.tchaikovsky.speaker;
 
-import java.util.List;
+import java.util.Map;
 
 /**
- * General information about the speaker.
+ * Information about created zone
  * 
- * @author Dominic Lerbs
- *
+ * @author Yannic Wilkening
  */
-public interface PlayerInfo {
 
-    String getDisplayName();
+public interface ZoneItem {
+    
+    String getZoneId();
 
-    List<String> getCapabilities();
+    int getZoneTimestamp();
 
-    int getMaxVolume();
-
-    ZoneInfo getZoneInfo();
+    Map<String,Integer> getSlaves();
 
 }

@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import de.kaizencode.tchaikovsky.businterface.MCUInterface;
 import de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface;
 import de.kaizencode.tchaikovsky.businterface.VolumeInterface;
+import de.kaizencode.tchaikovsky.businterface.ZoneManagerInterface;
 import de.kaizencode.tchaikovsky.bussignal.MediaPlayerSignalHandler;
 import de.kaizencode.tchaikovsky.bussignal.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
@@ -172,7 +173,7 @@ public class SpeakerBusHandler {
 
     private ProxyBusObject getProxyBusObject() {
         ProxyBusObject proxyBusObject = busAttachment.getProxyBusObject(speakerBusName, OBJECT_PATH, sessionId.value,
-                new Class<?>[] { MediaPlayerInterface.class, VolumeInterface.class, MCUInterface.class });
+                new Class<?>[] { MediaPlayerInterface.class, VolumeInterface.class, ZoneManagerInterface.class, MCUInterface.class });
         logger.debug("Created ProxyBusObject BusName [" + proxyBusObject.getBusName() + "], object path ["
                 + proxyBusObject.getObjPath() + "]");
         return proxyBusObject;

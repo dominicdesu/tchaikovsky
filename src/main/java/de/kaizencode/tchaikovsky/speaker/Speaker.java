@@ -266,6 +266,11 @@ public interface Speaker {
      * @return The {@link Volume} of the speaker.
      */
     Volume volume();
+    
+    /**
+     * @return The {@link ZoneManager} of the speaker.
+     */
+    ZoneManager zoneManager();
 
     /**
      * Adds a listener which is notified when the state of the speaker changes.

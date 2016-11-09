@@ -16,56 +16,40 @@
  */
 package de.kaizencode.tchaikovsky.speaker.remote;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 
 import org.alljoyn.bus.annotation.Position;
 import org.alljoyn.bus.annotation.Signature;
 
-import de.kaizencode.tchaikovsky.speaker.PlayerInfo;
-import de.kaizencode.tchaikovsky.speaker.ZoneInfo;
+import de.kaizencode.tchaikovsky.speaker.ZoneItem;
 
-public class RemotePlayerInfo implements PlayerInfo {
-
+public class RemoteZoneItem implements ZoneItem {
+    
     @Position(0)
     @Signature("s")
-    public String displayName;
+    public String zoneId;
 
     @Position(1)
-    @Signature("as")
-    public String[] capabilities;
+    @Signature("i")
+    public int zoneTimestamp;
 
     @Position(2)
-    @Signature("i")
-    public int maxVolume;
-
-    @Position(3)
-    @Signature("r")
-    public RemoteZoneInfo zoneInfo;
+    @Signature("a{si}")
+    public Map<String,Integer> slaves;
 
     @Override
-    public String getDisplayName() {
-        return displayName;
+    public String getZoneId() {
+        return zoneId;
     }
 
     @Override
-    public List<String> getCapabilities() {
-        return Arrays.asList(capabilities);
+    public int getZoneTimestamp() {
+        return zoneTimestamp;
     }
-
+    
     @Override
-    public int getMaxVolume() {
-        return maxVolume;
-    }
-
-    @Override
-    public ZoneInfo getZoneInfo() {
-        return zoneInfo;
-    }
-
-    @Override
-    public String toString() {
-        return displayName;
+    public Map<String,Integer> getSlaves() {
+        return slaves;
     }
 
 }

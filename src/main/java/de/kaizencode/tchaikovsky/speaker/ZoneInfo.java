@@ -23,10 +23,24 @@ package de.kaizencode.tchaikovsky.speaker;
  */
 public interface ZoneInfo {
 
+    /**
+     * @return The current zone id
+     */
     String getZoneId();
 
+    /**
+     * @return The current zone timestamp
+     */
     int getZoneTimestamp();
 
-    // void getLeadPlayerName();
+    /**
+     * @return If the speaker is lead player within the zone
+     */
+    boolean isLeadPlayer();
+    
+    /**
+     * @return The id of the speaker id of the lead player if speaker is not lead
+     */
+    String getLeadPlayerID();
 
 }

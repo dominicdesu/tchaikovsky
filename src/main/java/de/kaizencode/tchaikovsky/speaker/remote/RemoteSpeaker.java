@@ -29,6 +29,7 @@ import de.kaizencode.tchaikovsky.bus.SpeakerSessionListener;
 import de.kaizencode.tchaikovsky.businterface.MCUInterface;
 import de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface;
 import de.kaizencode.tchaikovsky.businterface.VolumeInterface;
+import de.kaizencode.tchaikovsky.businterface.ZoneManagerInterface;
 import de.kaizencode.tchaikovsky.bussignal.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
 import de.kaizencode.tchaikovsky.exception.SpeakerException;
@@ -36,6 +37,7 @@ import de.kaizencode.tchaikovsky.speaker.PlaylistItem;
 import de.kaizencode.tchaikovsky.speaker.Speaker;
 import de.kaizencode.tchaikovsky.speaker.SpeakerDetails;
 import de.kaizencode.tchaikovsky.speaker.Volume;
+import de.kaizencode.tchaikovsky.speaker.ZoneManager;
 
 public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
@@ -52,6 +54,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
     private final SpeakerDetails details;
     private Volume volume;
+    private ZoneManager zoneManager;
 
     public RemoteSpeaker(SpeakerBusHandler bus, SpeakerDetails details) {
         this.busHandler = bus;
@@ -86,6 +89,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
         mediaPlayerInterface = allPlayObject.getInterface(MediaPlayerInterface.class);
         volume = new RemoteVolume(allPlayObject.getInterface(VolumeInterface.class));
+        zoneManager = new RemoteZoneManager(allPlayObject.getInterface(ZoneManagerInterface.class));
         mcuInterface = allPlayObject.getInterface(MCUInterface.class);
 
         // For an unknown reason, it is necessary to perform at least one method call
@@ -131,7 +135,12 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     public Volume volume() {
         return volume;
     }
-
+    
+    @Override
+    public ZoneManager zoneManager() {
+        return zoneManager;
+    }
+       
     @Override
     public RemotePlayerInfo getPlayerInfo() throws SpeakerException {
         try {
