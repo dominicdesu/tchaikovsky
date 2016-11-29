@@ -48,7 +48,6 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     private boolean isConnected = false;
     private SpeakerSessionListener sessionListener;
 
-    private ProxyBusObject allPlayObject;
     private MediaPlayerInterface mediaPlayerInterface;
     private MCUInterface mcuInterface;
 
@@ -83,7 +82,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
         sessionListener.addConnectionListener(this);
         busHandler.setSessionListener(sessionListener);
 
-        allPlayObject = busHandler.connect();
+        ProxyBusObject allPlayObject = busHandler.connect();
         busHandler.setSessionTimeout(sessionTimeoutInSec);
         isConnected = true;
 
@@ -105,7 +104,6 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
     @Override
     public void disconnect() {
-        allPlayObject = null;
         isConnected = false;
         busHandler.disconnect();
     }
@@ -135,12 +133,12 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     public Volume volume() {
         return volume;
     }
-    
+
     @Override
     public ZoneManager zoneManager() {
         return zoneManager;
     }
-       
+
     @Override
     public RemotePlayerInfo getPlayerInfo() throws SpeakerException {
         try {

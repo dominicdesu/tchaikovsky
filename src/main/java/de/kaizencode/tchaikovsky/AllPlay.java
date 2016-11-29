@@ -71,12 +71,13 @@ public class AllPlay {
      * Disconnect from the AllJoyn bus.
      */
     public void disconnect() {
-        if (isConnected()) {
+        if (busAttachment != null) {
             logger.debug("Disconnecting from AllJoyn bus " + busAttachment.getUniqueName());
             busAttachment.unregisterAboutListener(aboutListener);
-            busAttachment.cancelWhoImplements(INTERFACES);
             busAttachment.disconnect();
             busAttachment = null;
+        } else {
+            logger.debug("Disconnect requested, but not connected to bus - ignoring");
         }
     }
 
