@@ -47,8 +47,18 @@ public class AllPlay {
 
     private BusAttachment busAttachment;
     private SpeakerAboutListener aboutListener;
+    private String applicationName = "Tchaikovsky";
 
     public AllPlay() {
+    }
+
+    /**
+     * @param name
+     *            The name of the application using the allJoyn bus
+     */
+    public AllPlay(String name) {
+        this();
+        applicationName = name;
     }
 
     /**
@@ -58,7 +68,7 @@ public class AllPlay {
      *             Exception occurred during connection setup
      */
     public void connect() throws ConnectionException {
-        busAttachment = new BusAttachment("Tchaikovsky", BusAttachment.RemoteMessage.Receive);
+        busAttachment = new BusAttachment(applicationName, BusAttachment.RemoteMessage.Receive);
         connectToBus();
         aboutListener = new SpeakerAboutListener(busAttachment);
         for (SpeakerAnnouncedListener listener : speakerAnnounedListeners) {
