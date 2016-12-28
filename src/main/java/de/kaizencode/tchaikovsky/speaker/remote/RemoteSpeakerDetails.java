@@ -16,16 +16,20 @@
  */
 package de.kaizencode.tchaikovsky.speaker.remote;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.UUID;
 
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Variant;
 
+import de.kaizencode.tchaikovsky.exception.SpeakerException;
 import de.kaizencode.tchaikovsky.speaker.SpeakerDetails;
 
 public class RemoteSpeakerDetails implements SpeakerDetails {
 
-    private byte[] appId;
+    private String wellKnownName;
+    private UUID appId;
     private String defaultLanguage;
     private String deviceName;
     private String deviceId;
@@ -40,8 +44,13 @@ public class RemoteSpeakerDetails implements SpeakerDetails {
         parseAboutData(aboutData);
     }
 
+    public RemoteSpeakerDetails(String wellKnownName, Map<String, Variant> aboutData) throws BusException {
+        this(aboutData);
+        this.wellKnownName = wellKnownName;
+    }
+
     private void parseAboutData(Map<String, Variant> aboutData) throws BusException {
-        appId = aboutData.get("AppId").getObject(byte[].class);
+        appId = getGuidFromByteArray(aboutData.get("AppId").getObject(byte[].class));
         defaultLanguage = getAsString(aboutData, "DefaultLanguage");
         deviceName = getAsString(aboutData, "DeviceName");
         deviceId = getAsString(aboutData, "DeviceId");
@@ -53,8 +62,16 @@ public class RemoteSpeakerDetails implements SpeakerDetails {
         allJoynSdkVersion = getAsString(aboutData, "AJSoftwareVersion");
     }
 
+    public String getWellKnownName() throws SpeakerException {
+        if (wellKnownName != null) {
+            return wellKnownName;
+        } else {
+            throw new SpeakerException("Well-known name is not set. Did you use name-based discovery?");
+        }
+    }
+
     @Override
-    public byte[] getAppId() {
+    public UUID getAppId() {
         return appId;
     }
 
@@ -116,4 +133,8 @@ public class RemoteSpeakerDetails implements SpeakerDetails {
         return deviceName + " (" + deviceId + ")";
     }
 
+    public static UUID getGuidFromByteArray(byte[] bytes) {
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        return new UUID(bb.getLong(), bb.getLong());
+    }
 }

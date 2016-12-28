@@ -14,25 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.kaizencode.tchaikovsky.bus;
+package de.kaizencode.tchaikovsky.listener;
 
 import de.kaizencode.tchaikovsky.speaker.Speaker;
 
 /**
- * Listener for the {@link Speaker} connection state.
+ * Listener for newly announced {@link Speaker}s.
  * 
  * @author Dominic Lerbs
  */
-public interface SpeakerConnectionListener {
+public interface SpeakerAnnouncedListener {
 
     /**
-     * Called if the connection to the {@link Speaker} has been lost
+     * Called when a new speaker has been discovered.
      * 
      * @param speaker
-     *            The {@link Speaker} to which the connection has been lost
-     * @param alljoynReasonCode
-     *            The AllJoyn internal reason code for the session disconnect
+     *            The {@link Speaker} which has been discovered
      */
-    void onConnectionLost(Speaker speaker, int alljoynReasonCode);
+    void onSpeakerAnnounced(Speaker speaker);
 
 }

@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import de.kaizencode.tchaikovsky.bus.SpeakerBusHandler;
 import de.kaizencode.tchaikovsky.bussignal.MediaPlayerSignalHandler;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
+import de.kaizencode.tchaikovsky.listener.SpeakerAnnouncedListener;
 import de.kaizencode.tchaikovsky.speaker.Speaker;
 import de.kaizencode.tchaikovsky.speaker.SpeakerDetails;
 import de.kaizencode.tchaikovsky.speaker.remote.RemoteSpeaker;
@@ -67,11 +68,14 @@ public class SpeakerAboutListener implements AboutListener {
     public void announced(String speakerBusName, int version, short port, AboutObjectDescription[] objectDescriptions,
             Map<String, Variant> aboutData) {
 
-        logger.info("New speaker announced at busName " + speakerBusName + ", version=" + version + ", port=" + port);
         logObjectDescriptions(objectDescriptions);
 
         try {
             SpeakerDetails details = new RemoteSpeakerDetails(aboutData);
+
+            logger.info("New speaker " + details.getDeviceId() + "(" + details.getDeviceName()
+                    + ") announced at busName " + speakerBusName + ", version=" + version + ", port=" + port);
+
             SpeakerBusHandler busHandler = new SpeakerBusHandler(busAttachment, speakerBusName, port, signalHandler);
             RemoteSpeaker speaker = new RemoteSpeaker(busHandler, details);
 

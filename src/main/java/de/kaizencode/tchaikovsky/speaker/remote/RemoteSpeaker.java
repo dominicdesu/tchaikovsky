@@ -24,15 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.kaizencode.tchaikovsky.bus.SpeakerBusHandler;
-import de.kaizencode.tchaikovsky.bus.SpeakerConnectionListener;
-import de.kaizencode.tchaikovsky.bus.SpeakerSessionListener;
 import de.kaizencode.tchaikovsky.businterface.MCUInterface;
 import de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface;
 import de.kaizencode.tchaikovsky.businterface.VolumeInterface;
 import de.kaizencode.tchaikovsky.businterface.ZoneManagerInterface;
-import de.kaizencode.tchaikovsky.bussignal.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
 import de.kaizencode.tchaikovsky.exception.SpeakerException;
+import de.kaizencode.tchaikovsky.listener.SpeakerChangedListener;
+import de.kaizencode.tchaikovsky.listener.SpeakerConnectionListener;
 import de.kaizencode.tchaikovsky.speaker.PlaylistItem;
 import de.kaizencode.tchaikovsky.speaker.Speaker;
 import de.kaizencode.tchaikovsky.speaker.SpeakerDetails;
@@ -46,7 +45,6 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     private final SpeakerBusHandler busHandler;
     private int sessionTimeoutInSec = 40;
     private boolean isConnected = false;
-    private SpeakerSessionListener sessionListener;
 
     private MediaPlayerInterface mediaPlayerInterface;
     private MCUInterface mcuInterface;
@@ -78,9 +76,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     @Override
     public void connect() throws ConnectionException {
 
-        sessionListener = new SpeakerSessionListener(this);
-        sessionListener.addConnectionListener(this);
-        busHandler.setSessionListener(sessionListener);
+        busHandler.setConnectionListener(this);
 
         ProxyBusObject allPlayObject = busHandler.connect();
         busHandler.setSessionTimeout(sessionTimeoutInSec);
@@ -99,12 +95,12 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
             logger.warn("Connection to speaker established but unable to get playlist. "
                     + "Speaker update receiving might fail.");
         }
-
     }
 
     @Override
     public void disconnect() {
         isConnected = false;
+        busHandler.removeConnectionListener(this);
         busHandler.disconnect();
     }
 
@@ -114,7 +110,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     }
 
     @Override
-    public void onConnectionLost(Speaker speaker, int alljoynReasonCode) {
+    public void onConnectionLost(String hostName, int alljoynReasonCode) {
         isConnected = false;
     }
 
@@ -319,12 +315,12 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
 
     @Override
     public void addSpeakerConnectionListener(SpeakerConnectionListener listener) {
-        sessionListener.addConnectionListener(listener);
+        busHandler.setConnectionListener(listener);
     }
 
     @Override
     public void removeSpeakerConnectionListener(SpeakerConnectionListener listener) {
-        sessionListener.removeConnectionListener(listener);
+        busHandler.removeConnectionListener(listener);
     }
 
     @Override

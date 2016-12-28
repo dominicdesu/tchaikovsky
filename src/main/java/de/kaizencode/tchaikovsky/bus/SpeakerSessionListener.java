@@ -23,7 +23,7 @@ import org.alljoyn.bus.SessionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.kaizencode.tchaikovsky.speaker.Speaker;
+import de.kaizencode.tchaikovsky.listener.SpeakerConnectionListener;
 
 /**
  * Specific implementation of {@link SessionListener}
@@ -35,10 +35,10 @@ public class SpeakerSessionListener extends SessionListener {
     private final Logger logger = LoggerFactory.getLogger(SpeakerSessionListener.class);
     private final List<SpeakerConnectionListener> listeners = new ArrayList<>();
 
-    private final Speaker speaker;
+    private String hostName;
 
-    public SpeakerSessionListener(Speaker speaker) {
-        this.speaker = speaker;
+    public SpeakerSessionListener(String hostName) {
+        this.hostName = hostName;
     }
 
     public void addConnectionListener(SpeakerConnectionListener listener) {
@@ -51,10 +51,10 @@ public class SpeakerSessionListener extends SessionListener {
 
     @Override
     public void sessionLost(int sessionId, int reason) {
-        logger.info("Session lost for speaker " + speaker + " with reason " + reason);
+        logger.info("Session lost for speaker " + hostName + " with reason " + reason);
 
         for (SpeakerConnectionListener listener : listeners) {
-            listener.onConnectionLost(speaker, reason);
+            listener.onConnectionLost(hostName, reason);
         }
         super.sessionLost(sessionId, reason);
     }

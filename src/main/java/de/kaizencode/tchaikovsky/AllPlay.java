@@ -25,9 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.kaizencode.tchaikovsky.discovery.SpeakerAboutListener;
-import de.kaizencode.tchaikovsky.discovery.SpeakerAnnouncedListener;
+import de.kaizencode.tchaikovsky.discovery.SpeakerBusListener;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
 import de.kaizencode.tchaikovsky.exception.DiscoveryException;
+import de.kaizencode.tchaikovsky.listener.SpeakerAnnouncedListener;
 
 /**
  * Main class for connecting to the AllJoyn bus and starting the discovery process.
@@ -43,10 +44,13 @@ public class AllPlay {
         System.loadLibrary("alljoyn_java");
     }
 
-    private static final String INTERFACES[] = { "net.allplay.MediaPlayer" };
+    private static final String SERVICE_NAME = "net.allplay.MediaPlayer";
+    private static final String WKN_PREFIX = SERVICE_NAME + ".i";
+    private static final String INTERFACES[] = { SERVICE_NAME };
 
     private BusAttachment busAttachment;
     private SpeakerAboutListener aboutListener;
+    private SpeakerBusListener busListener;
     private String applicationName = "Tchaikovsky";
 
     public AllPlay() {
@@ -69,12 +73,16 @@ public class AllPlay {
      */
     public void connect() throws ConnectionException {
         busAttachment = new BusAttachment(applicationName, BusAttachment.RemoteMessage.Receive);
+
         connectToBus();
+        busListener = new SpeakerBusListener(busAttachment);
         aboutListener = new SpeakerAboutListener(busAttachment);
         for (SpeakerAnnouncedListener listener : speakerAnnounedListeners) {
             aboutListener.addSpeakerAnnouncedListener(listener);
+            busListener.addSpeakerAnnouncedListener(listener);
         }
         busAttachment.registerAboutListener(aboutListener);
+        busAttachment.registerBusListener(busListener);
     }
 
     /**
@@ -84,6 +92,7 @@ public class AllPlay {
         if (busAttachment != null) {
             logger.debug("Disconnecting from AllJoyn bus " + busAttachment.getUniqueName());
             busAttachment.unregisterAboutListener(aboutListener);
+            busAttachment.unregisterBusListener(busListener);
             busAttachment.disconnect();
             busAttachment = null;
         } else {
@@ -106,6 +115,21 @@ public class AllPlay {
      *             Exception while looking for available speakers.
      */
     public void discoverSpeakers() throws DiscoveryException {
+        findAdvertisedName();
+    }
+
+    public void discoverSpeaker(String deviceId) throws DiscoveryException {
+        findAdvertisedName(WKN_PREFIX + deviceId);
+    }
+
+    /**
+     * Start listening for AllPlay speakers announcements. Bus connection has to be established first using
+     * {@link #connect()} method.
+     * 
+     * @throws DiscoveryException
+     *             Exception while looking for available speakers.
+     */
+    public void listenForAnnouncements() throws DiscoveryException {
         defineInterests();
     }
 
@@ -126,6 +150,7 @@ public class AllPlay {
     public void cancelDiscovery() {
         if (isConnected()) {
             busAttachment.cancelWhoImplements(INTERFACES);
+            busAttachment.cancelFindAdvertisedName(SERVICE_NAME);
         }
     }
 
@@ -142,6 +167,9 @@ public class AllPlay {
         if (aboutListener != null) {
             aboutListener.addSpeakerAnnouncedListener(listener);
         }
+        if (busListener != null) {
+            busListener.addSpeakerAnnouncedListener(listener);
+        }
     }
 
     /**
@@ -155,6 +183,9 @@ public class AllPlay {
         if (aboutListener != null) {
             aboutListener.removeSpeakerAnnouncedListener(listener);
         }
+        if (busListener != null) {
+            busListener.removeSpeakerAnnouncedListener(listener);
+        }
     }
 
     private void connectToBus() throws ConnectionException {
@@ -164,6 +195,18 @@ public class AllPlay {
             throw new ConnectionException("Unable to connect to AllJoyn bus", status);
         }
         logger.info("Successfully connected to allJoyn bus with bus name " + busAttachment.getUniqueName());
+    }
+
+    private void findAdvertisedName(String namePrefix) throws DiscoveryException {
+        busAttachment.cancelFindAdvertisedName(namePrefix);
+        Status status = busAttachment.findAdvertisedName(namePrefix);
+        if (status != Status.OK) {
+            throw new DiscoveryException("Error while finding advertised name", status);
+        }
+    }
+
+    private void findAdvertisedName() throws DiscoveryException {
+        findAdvertisedName(SERVICE_NAME);
     }
 
     private void defineInterests() throws DiscoveryException {

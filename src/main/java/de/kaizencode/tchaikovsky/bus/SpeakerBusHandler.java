@@ -16,10 +16,12 @@
  */
 package de.kaizencode.tchaikovsky.bus;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.Mutable;
 import org.alljoyn.bus.ProxyBusObject;
-import org.alljoyn.bus.SessionListener;
 import org.alljoyn.bus.SessionOpts;
 import org.alljoyn.bus.Status;
 import org.slf4j.Logger;
@@ -30,8 +32,9 @@ import de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface;
 import de.kaizencode.tchaikovsky.businterface.VolumeInterface;
 import de.kaizencode.tchaikovsky.businterface.ZoneManagerInterface;
 import de.kaizencode.tchaikovsky.bussignal.MediaPlayerSignalHandler;
-import de.kaizencode.tchaikovsky.bussignal.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
+import de.kaizencode.tchaikovsky.listener.SpeakerChangedListener;
+import de.kaizencode.tchaikovsky.listener.SpeakerConnectionListener;
 import de.kaizencode.tchaikovsky.speaker.Speaker;
 
 /**
@@ -39,7 +42,7 @@ import de.kaizencode.tchaikovsky.speaker.Speaker;
  * 
  * @author Dominic Lerbs
  */
-public class SpeakerBusHandler {
+public class SpeakerBusHandler implements SpeakerConnectionListener {
 
     private final Logger logger = LoggerFactory.getLogger(SpeakerBusHandler.class);
 
@@ -47,28 +50,32 @@ public class SpeakerBusHandler {
 
     private final MediaPlayerSignalHandler signalHandler;
     private final BusAttachment busAttachment;
-    private final String speakerBusName;
+    private final String hostName;
     private final short port;
     private Mutable.IntegerValue sessionId;
-    private SessionListener sessionListener = new SessionListener();
+    private SpeakerSessionListener sessionListener;
+
+    private final List<SpeakerChangedListener> speakerChangedListeners = new ArrayList<>();
 
     /**
      * Creates a new {@link SpeakerBusHandler}.
      * 
      * @param bus
      *            {@link BusAttachment} currently in use
-     * @param busName
-     *            Name of the bus to which the {@link Speaker} is connected
+     * @param hostName
+     *            Bus name or well-known name of the {@link Speaker}
      * @param port
      *            Port where the {@link Speaker} is listening.
      * @param signalHandler
      *            Signal handler registered on the {@link BusAttachment}
      */
-    public SpeakerBusHandler(BusAttachment bus, String busName, short port, MediaPlayerSignalHandler signalHandler) {
+    public SpeakerBusHandler(BusAttachment bus, String hostName, short port, MediaPlayerSignalHandler signalHandler) {
         this.busAttachment = bus;
-        this.speakerBusName = busName;
+        this.hostName = hostName;
         this.port = port;
         this.signalHandler = signalHandler;
+        sessionListener = new SpeakerSessionListener(hostName);
+        sessionListener.addConnectionListener(this);
     }
 
     /**
@@ -81,8 +88,16 @@ public class SpeakerBusHandler {
      */
     public ProxyBusObject connect() throws ConnectionException {
         busAttachment.enableConcurrentCallbacks();
-        joinSession();
+        joinSession(hostName);
         return getProxyBusObject();
+    }
+
+    public int getSessionId() {
+        return this.sessionId.value;
+    }
+
+    public List<SpeakerChangedListener> getSpeakerChangedListeners() {
+        return speakerChangedListeners;
     }
 
     /**
@@ -90,6 +105,7 @@ public class SpeakerBusHandler {
      */
     public void disconnect() {
         busAttachment.leaveSession(sessionId.value);
+        signalHandler.removeSpeakerBusHandler(this);
     }
 
     /**
@@ -100,8 +116,8 @@ public class SpeakerBusHandler {
      * @return True if the ping was successful, else false
      */
     public boolean ping(int timeoutInMs) {
-        logger.debug("Pinging speaker on bus " + speakerBusName);
-        Status status = busAttachment.ping(speakerBusName, timeoutInMs);
+        logger.debug("Pinging speaker at " + hostName);
+        Status status = busAttachment.ping(hostName, timeoutInMs);
         logger.debug("Ping returned with status " + status.toString());
         return status == Status.OK;
     }
@@ -120,12 +136,12 @@ public class SpeakerBusHandler {
         busAttachment.enableConcurrentCallbacks();
     }
 
-    /**
-     * @param listener
-     *            {@link SpeakerSessionListener} to be informed in case if session events
-     */
-    public void setSessionListener(SpeakerSessionListener listener) {
-        this.sessionListener = listener;
+    public void setConnectionListener(SpeakerConnectionListener listener) {
+        sessionListener.addConnectionListener(listener);
+    }
+
+    public void removeConnectionListener(SpeakerConnectionListener listener) {
+        sessionListener.removeConnectionListener(listener);
     }
 
     /**
@@ -135,7 +151,7 @@ public class SpeakerBusHandler {
      *            The {@link SpeakerChangedListener} to be added
      */
     public void addSpeakerChangedListener(SpeakerChangedListener listener) {
-        signalHandler.addSpeakerChangedListener(speakerBusName, listener);
+        speakerChangedListeners.add(listener);
     }
 
     /**
@@ -145,22 +161,27 @@ public class SpeakerBusHandler {
      *            The {@link SpeakerChangedListener} to be removed
      */
     public void removeSpeakerChangedListener(SpeakerChangedListener listener) {
-        signalHandler.removeSpeakerChangedListener(speakerBusName, listener);
+        speakerChangedListeners.remove(listener);
     }
 
-    private void joinSession() throws ConnectionException {
+    private void joinSession(String sessionHost) throws ConnectionException {
         sessionId = new Mutable.IntegerValue();
-        logger.debug("Joining session with busname [" + speakerBusName + "], port [" + port + "], sessionId ["
-                + sessionId.value + "]");
+        logger.debug("Joining session with host [" + sessionHost + "], port [" + port + "]");
 
-        Status status = busAttachment.joinSession(speakerBusName, port, sessionId, createSessionOptions(),
+        Status status = busAttachment.joinSession(sessionHost, port, sessionId, createSessionOptions(),
                 sessionListener);
         if (status != Status.OK) {
-            throw new ConnectionException("Unable to join session " + sessionId.value + " on bus " + speakerBusName,
+            throw new ConnectionException("Unable to join session " + sessionId.value + " on host " + sessionHost,
                     status);
         }
-        logger.debug("Joined session from local bus [" + busAttachment.getUniqueName() + "] to remote bus ["
-                + speakerBusName + "] on sessionId [" + sessionId.value + "]");
+        logger.debug("Joined session from local bus [" + busAttachment.getUniqueName() + "] to remote host ["
+                + sessionHost + "] on sessionId [" + sessionId.value + "]");
+        signalHandler.addSpeakerBusHandler(this);
+    }
+
+    @Override
+    public void onConnectionLost(String hostName, int alljoynReasonCode) {
+        signalHandler.removeSpeakerBusHandler(this);
     }
 
     /**
@@ -172,8 +193,9 @@ public class SpeakerBusHandler {
     }
 
     private ProxyBusObject getProxyBusObject() {
-        ProxyBusObject proxyBusObject = busAttachment.getProxyBusObject(speakerBusName, OBJECT_PATH, sessionId.value,
-                new Class<?>[] { MediaPlayerInterface.class, VolumeInterface.class, ZoneManagerInterface.class, MCUInterface.class });
+        ProxyBusObject proxyBusObject = busAttachment.getProxyBusObject(hostName, OBJECT_PATH, sessionId.value,
+                new Class<?>[] { MediaPlayerInterface.class, VolumeInterface.class, ZoneManagerInterface.class,
+                        MCUInterface.class });
         logger.debug("Created ProxyBusObject BusName [" + proxyBusObject.getBusName() + "], object path ["
                 + proxyBusObject.getObjPath() + "]");
         return proxyBusObject;
@@ -187,4 +209,5 @@ public class SpeakerBusHandler {
         sessionOpts.transports = SessionOpts.TRANSPORT_ANY;
         return sessionOpts;
     }
+
 }

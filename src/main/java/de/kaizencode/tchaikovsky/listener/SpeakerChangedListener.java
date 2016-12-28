@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.kaizencode.tchaikovsky.bussignal;
+package de.kaizencode.tchaikovsky.listener;
 
 import java.util.Map;
 

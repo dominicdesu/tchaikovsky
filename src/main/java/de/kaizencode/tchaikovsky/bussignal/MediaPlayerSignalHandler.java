@@ -17,8 +17,6 @@
 package de.kaizencode.tchaikovsky.bussignal;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +25,9 @@ import org.alljoyn.bus.annotation.BusSignalHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.kaizencode.tchaikovsky.bus.SpeakerBusHandler;
 import de.kaizencode.tchaikovsky.exception.SpeakerException;
+import de.kaizencode.tchaikovsky.listener.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.speaker.Speaker.LoopMode;
 import de.kaizencode.tchaikovsky.speaker.Speaker.ShuffleMode;
 import de.kaizencode.tchaikovsky.speaker.remote.RemotePlayState;
@@ -41,7 +41,7 @@ public class MediaPlayerSignalHandler {
 
     private final Logger logger = LoggerFactory.getLogger(MediaPlayerSignalHandler.class);
 
-    private final Map<String, List<SpeakerChangedListener>> speakerChangedListeners = new HashMap<>();
+    private final List<SpeakerBusHandler> busHandlers = new ArrayList<>();
     private static final String MEDIA_PLAYER_INTERFACE = "de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface";
     private static final String VOLUME_INTERFACE = "de.kaizencode.tchaikovsky.businterface.VolumeInterface";
     private static final String ZONEMANAGER_INTERFACE = "de.kaizencode.tchaikovsky.businterface.ZoneManagerInterface";
@@ -52,37 +52,12 @@ public class MediaPlayerSignalHandler {
         this.busAttachment = busAttachment;
     }
 
-    /**
-     * Add a new {@link SpeakerChangedListener} for the given bus name.
-     * 
-     * @param busName
-     *            Signals on this bus name will be forwarded to the listener
-     * @param listener
-     *            A {@link SpeakerChangedListener} for a single bus name
-     */
-    public void addSpeakerChangedListener(String busName, SpeakerChangedListener listener) {
-        if (speakerChangedListeners.containsKey(busName)) {
-            speakerChangedListeners.get(busName).add(listener);
-        } else {
-            speakerChangedListeners.put(busName,
-                    new ArrayList<SpeakerChangedListener>(Collections.singleton(listener)));
-        }
-        logger.debug("New SpeakerChangedListener added for bus " + busName);
+    public void addSpeakerBusHandler(SpeakerBusHandler handler) {
+        busHandlers.add(handler);
     }
 
-    /**
-     * Remove a {@link SpeakerChangedListener} for the given bus name.
-     * 
-     * @param busName
-     *            The bus name to be removed from
-     * @param listener
-     *            The {@link SpeakerChangedListener} to be removed
-     */
-    public void removeSpeakerChangedListener(String busName, SpeakerChangedListener listener) {
-        if (speakerChangedListeners.containsKey(busName)) {
-            speakerChangedListeners.get(busName).remove(listener);
-        }
-        logger.debug("SpeakerChangedListener removed from bus " + busName);
+    public void removeSpeakerBusHandler(SpeakerBusHandler handler) {
+        busHandlers.remove(handler);
     }
 
     @BusSignalHandler(iface = MEDIA_PLAYER_INTERFACE, signal = "onLoopModeChanged")
@@ -156,19 +131,21 @@ public class MediaPlayerSignalHandler {
             listener.onVolumeControlChanged(enabled);
         }
     }
-   
+
     @BusSignalHandler(iface = ZONEMANAGER_INTERFACE, signal = "onZoneChanged")
-    public void onZoneChanged(String zoneId, int timestamp, Map<String,Integer> slaves) {
+    public void onZoneChanged(String zoneId, int timestamp, Map<String, Integer> slaves) {
         logSignalReceived("Zone changed");
         for (SpeakerChangedListener listener : findListeners()) {
             listener.onZoneChanged(zoneId, timestamp, slaves);
         }
     }
-    
+
     private List<SpeakerChangedListener> findListeners() {
-        String busName = busAttachment.getMessageContext().sender;
-        if (speakerChangedListeners.containsKey(busName)) {
-            return speakerChangedListeners.get(busName);
+        int sessionId = busAttachment.getMessageContext().sessionId;
+        for (SpeakerBusHandler handler : busHandlers) {
+            if (handler.getSessionId() == sessionId) {
+                return handler.getSpeakerChangedListeners();
+            }
         }
         return new ArrayList<>();
     }

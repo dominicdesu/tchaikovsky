@@ -18,10 +18,10 @@ package de.kaizencode.tchaikovsky.speaker;
 
 import java.util.List;
 
-import de.kaizencode.tchaikovsky.bus.SpeakerConnectionListener;
-import de.kaizencode.tchaikovsky.bussignal.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.exception.ConnectionException;
 import de.kaizencode.tchaikovsky.exception.SpeakerException;
+import de.kaizencode.tchaikovsky.listener.SpeakerChangedListener;
+import de.kaizencode.tchaikovsky.listener.SpeakerConnectionListener;
 
 /**
  * An AllPlay speaker.
@@ -107,7 +107,7 @@ public interface Speaker {
      * 
      * @param timeoutInSec
      *            Timeout for a session in seconds. If timeout occurs,
-     *            {@link SpeakerConnectionListener#onConnectionLost(Speaker, int)} is called
+     *            {@link SpeakerConnectionListener#onConnectionLost(String, int)} is called
      */
     void setSessionTimeout(int timeoutInSec);
 
@@ -266,7 +266,7 @@ public interface Speaker {
      * @return The {@link Volume} of the speaker.
      */
     Volume volume();
-    
+
     /**
      * @return The {@link ZoneManager} of the speaker.
      */

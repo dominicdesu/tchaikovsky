@@ -16,6 +16,10 @@
  */
 package de.kaizencode.tchaikovsky.speaker;
 
+import java.util.UUID;
+
+import de.kaizencode.tchaikovsky.exception.SpeakerException;
+
 /**
  * Detailed information about an AllPlay speaker.
  * 
@@ -23,7 +27,9 @@ package de.kaizencode.tchaikovsky.speaker;
  */
 public interface SpeakerDetails {
 
-    byte[] getAppId();
+    String getWellKnownName() throws SpeakerException;
+
+    UUID getAppId();
 
     String getDefaultLanguage();
 
