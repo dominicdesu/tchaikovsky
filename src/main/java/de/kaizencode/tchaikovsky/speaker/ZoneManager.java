@@ -43,12 +43,12 @@ public interface ZoneManager {
 
     /**
      * @return The {@link ZoneItem} of the speaker.
-     * @param speakers
-     *            Array of {@link Speaker} to add to the group
+     * @param deviceIds
+     *            List of {@link Speaker} IDs to add to the group
      * @throws SpeakerException
      *             if the group could not be created
      */
-    public ZoneItem createZone(List<Speaker> speakers) throws SpeakerException;
+    public ZoneItem createZone(List<String> deviceIds) throws SpeakerException;
 
     /**
      * {@link ZoneManager} release currently grouped slaves of speaker.

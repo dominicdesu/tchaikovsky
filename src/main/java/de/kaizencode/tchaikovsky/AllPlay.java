@@ -45,7 +45,7 @@ public class AllPlay {
     }
 
     private static final String SERVICE_NAME = "net.allplay.MediaPlayer";
-    private static final String WKN_PREFIX = SERVICE_NAME + ".i";
+    public static final String WELL_KNOWN_NAME_PREFIX = SERVICE_NAME + ".i";
     private static final String INTERFACES[] = { SERVICE_NAME };
 
     private BusAttachment busAttachment;
@@ -119,7 +119,7 @@ public class AllPlay {
     }
 
     public void discoverSpeaker(String deviceId) throws DiscoveryException {
-        findAdvertisedName(WKN_PREFIX + deviceId);
+        findAdvertisedName(WELL_KNOWN_NAME_PREFIX + deviceId);
     }
 
     /**
