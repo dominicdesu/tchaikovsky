@@ -23,7 +23,6 @@ import java.util.UUID;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Variant;
 
-import de.kaizencode.tchaikovsky.exception.SpeakerException;
 import de.kaizencode.tchaikovsky.speaker.SpeakerDetails;
 
 public class RemoteSpeakerDetails implements SpeakerDetails {
@@ -62,12 +61,8 @@ public class RemoteSpeakerDetails implements SpeakerDetails {
         allJoynSdkVersion = getAsString(aboutData, "AJSoftwareVersion");
     }
 
-    public String getWellKnownName() throws SpeakerException {
-        if (wellKnownName != null) {
-            return wellKnownName;
-        } else {
-            throw new SpeakerException("Well-known name is not set. Did you use name-based discovery?");
-        }
+    public String getWellKnownName() {
+        return wellKnownName;
     }
 
     @Override

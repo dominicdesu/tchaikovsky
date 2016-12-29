@@ -53,6 +53,14 @@ public class AllPlay {
     private SpeakerBusListener busListener;
     private String applicationName = "Tchaikovsky";
 
+    /**
+     * AllJoyn allows two discovery modes: Either via the well-known name prefix of a speaker {@link #NAME_BASED}) or
+     * via speaker announcements ({@link #ANNOUNCEMENT_BASED}).
+     */
+    public enum DiscoveryMode {
+        NAME_BASED, ANNOUNCEMENT_BASED
+    }
+
     public AllPlay() {
     }
 
@@ -115,22 +123,28 @@ public class AllPlay {
      *             Exception while looking for available speakers.
      */
     public void discoverSpeakers() throws DiscoveryException {
-        findAdvertisedName();
+        discoverSpeakers(DiscoveryMode.NAME_BASED);
+    }
+
+    /**
+     * Start the discovery of AllPlay speakers using the given {@link DiscoveryMode}. Bus connection has to be
+     * established first using {@link #connect()} method.
+     * 
+     * @param mode
+     *            The {@link DiscoveryMode} to use
+     * @throws DiscoveryException
+     *             Exception while looking for available speakers.
+     */
+    public void discoverSpeakers(DiscoveryMode mode) throws DiscoveryException {
+        if (mode == DiscoveryMode.NAME_BASED) {
+            findAdvertisedName(SERVICE_NAME);
+        } else {
+            defineInterests();
+        }
     }
 
     public void discoverSpeaker(String deviceId) throws DiscoveryException {
         findAdvertisedName(WELL_KNOWN_NAME_PREFIX + deviceId);
-    }
-
-    /**
-     * Start listening for AllPlay speakers announcements. Bus connection has to be established first using
-     * {@link #connect()} method.
-     * 
-     * @throws DiscoveryException
-     *             Exception while looking for available speakers.
-     */
-    public void listenForAnnouncements() throws DiscoveryException {
-        defineInterests();
     }
 
     /**
@@ -203,10 +217,6 @@ public class AllPlay {
         if (status != Status.OK) {
             throw new DiscoveryException("Error while finding advertised name", status);
         }
-    }
-
-    private void findAdvertisedName() throws DiscoveryException {
-        findAdvertisedName(SERVICE_NAME);
     }
 
     private void defineInterests() throws DiscoveryException {

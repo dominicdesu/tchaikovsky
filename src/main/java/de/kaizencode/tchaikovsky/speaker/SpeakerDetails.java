@@ -18,7 +18,7 @@ package de.kaizencode.tchaikovsky.speaker;
 
 import java.util.UUID;
 
-import de.kaizencode.tchaikovsky.exception.SpeakerException;
+import de.kaizencode.tchaikovsky.AllPlay.DiscoveryMode;
 
 /**
  * Detailed information about an AllPlay speaker.
@@ -27,7 +27,13 @@ import de.kaizencode.tchaikovsky.exception.SpeakerException;
  */
 public interface SpeakerDetails {
 
-    String getWellKnownName() throws SpeakerException;
+    /**
+     * Returns the well-known name (WKN) of the speaker. Note that the WKN is only set if
+     * {@link DiscoveryMode#NAME_BASED} is used.
+     * 
+     * @return The well-known name (WKN) of the speaker or null if not available
+     */
+    String getWellKnownName();
 
     UUID getAppId();
 
