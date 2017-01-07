@@ -44,8 +44,9 @@ import de.kaizencode.tchaikovsky.speaker.remote.RemoteSpeaker;
 import de.kaizencode.tchaikovsky.speaker.remote.RemoteSpeakerDetails;
 
 /**
- * @author Dominic
- *
+ * {@link BusListener} implementation for announcing discovered speakers.
+ * 
+ * @author Dominic Lerbs
  */
 public class SpeakerBusListener extends BusListener {
 
@@ -67,15 +68,29 @@ public class SpeakerBusListener extends BusListener {
     public void foundAdvertisedName(String wellKnownName, short transport, String namePrefix) {
         super.foundAdvertisedName(wellKnownName, transport, namePrefix);
         logger.info("foundAdvertisedName " + wellKnownName + " - " + transport + " - " + namePrefix);
-        try {
-            if (!wellKnownName.endsWith(".quiet")) {
-                busAttachment.enableConcurrentCallbacks();
-                SpeakerDetails speakerDetails = createSpeakerDetails(wellKnownName);
-                announceNewSpeaker(wellKnownName, speakerDetails);
-            }
-        } catch (AllPlayException e) {
-            logger.warn("Unable to announce speaker for advertised name " + wellKnownName, e);
+        if (!wellKnownName.endsWith(".quiet")) {
+            // foundAdvertisedName is called from the native library. If we call the native
+            // library from here in the same thread, a deadlock might occur. This happens especially when multiple
+            // speakers are found at almost the same time.
+            handleFoundSpeakerInNewThread(wellKnownName);
         }
+    }
+
+    private void handleFoundSpeakerInNewThread(String wellKnownName) {
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    logger.info("Creating speaker details " + wellKnownName);
+                    SpeakerDetails speakerDetails = createSpeakerDetails(wellKnownName);
+                    logger.info("Announcing new speaker " + wellKnownName);
+                    announceNewSpeaker(wellKnownName, speakerDetails);
+                } catch (AllPlayException e) {
+                    logger.warn("Unable to announce speaker for advertised name " + wellKnownName, e);
+                }
+            }
+        };
+        new Thread(run).start();
     }
 
     private SpeakerDetails createSpeakerDetails(String wellKnownName) throws AllPlayException {
@@ -112,6 +127,7 @@ public class SpeakerBusListener extends BusListener {
         logger.info("Joined session from local bus [" + busAttachment.getUniqueName() + "] to remote host ["
                 + sessionHost + "] on sessionId [" + sessionId.value + "]");
         return sessionId.value;
+
     }
 
     private void announceNewSpeaker(String hostName, SpeakerDetails details) {

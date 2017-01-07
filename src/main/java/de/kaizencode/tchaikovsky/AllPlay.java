@@ -101,7 +101,9 @@ public class AllPlay {
             logger.debug("Disconnecting from AllJoyn bus " + busAttachment.getUniqueName());
             busAttachment.unregisterAboutListener(aboutListener);
             busAttachment.unregisterBusListener(busListener);
-            busAttachment.disconnect();
+            if (busAttachment.isConnected()) {
+                busAttachment.disconnect();
+            }
             busAttachment = null;
         } else {
             logger.debug("Disconnect requested, but not connected to bus - ignoring");
@@ -143,6 +145,14 @@ public class AllPlay {
         }
     }
 
+    /**
+     * Discovers a speaker using its device ID
+     * 
+     * @param deviceId
+     *            The ID of the device to discover
+     * @throws DiscoveryException
+     *             Exception during discovery
+     */
     public void discoverSpeaker(String deviceId) throws DiscoveryException {
         findAdvertisedName(WELL_KNOWN_NAME_PREFIX + deviceId);
     }

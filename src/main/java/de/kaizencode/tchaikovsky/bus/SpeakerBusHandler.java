@@ -87,7 +87,6 @@ public class SpeakerBusHandler implements SpeakerConnectionListener {
      *             Exception if connection could not be established
      */
     public ProxyBusObject connect() throws ConnectionException {
-        busAttachment.enableConcurrentCallbacks();
         joinSession(hostName);
         return getProxyBusObject();
     }
@@ -106,6 +105,7 @@ public class SpeakerBusHandler implements SpeakerConnectionListener {
     public void disconnect() {
         busAttachment.leaveSession(sessionId.value);
         signalHandler.removeSpeakerBusHandler(this);
+        logger.info("Disconnected from session " + sessionId.value + " on host " + hostName);
     }
 
     /**
