@@ -47,6 +47,7 @@ public class MediaPlayerSignalHandler {
     private static final String MEDIA_PLAYER_INTERFACE = "de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface";
     private static final String VOLUME_INTERFACE = "de.kaizencode.tchaikovsky.businterface.VolumeInterface";
     private static final String ZONEMANAGER_INTERFACE = "de.kaizencode.tchaikovsky.businterface.ZoneManagerInterface";
+    private static final String INPUT_SELECTOR_INTERFACE = "de.kaizencode.tchaikovsky.businterface.InputSelectorInterface";
 
     private final BusAttachment busAttachment;
 
@@ -139,6 +140,14 @@ public class MediaPlayerSignalHandler {
         logSignalReceived("Zone changed");
         for (SpeakerChangedListener listener : findListeners()) {
             listener.onZoneChanged(zoneId, timestamp, slaves);
+        }
+    }
+
+    @BusSignalHandler(iface = INPUT_SELECTOR_INTERFACE, signal = "onInputChanged")
+    public void onInputChanged(String input) {
+        logSignalReceived("Input changed");
+        for (SpeakerChangedListener listener : findListeners()) {
+            listener.onInputChanged(input);
         }
     }
 

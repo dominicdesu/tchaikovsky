@@ -70,7 +70,7 @@ public interface SpeakerChangedListener {
      *            True if the volume control has been enabled, false if it has been disabled
      */
     public void onVolumeControlChanged(boolean enabled);
-    
+
     /**
      * @param zoneId
      *            The new zone id of the speaker
@@ -79,6 +79,12 @@ public interface SpeakerChangedListener {
      * @param slaves
      *            The slaves of the speaker
      */
-    public void onZoneChanged(String zoneId, int timestamp, Map<String,Integer> slaves);
-    
+    public void onZoneChanged(String zoneId, int timestamp, Map<String, Integer> slaves);
+
+    /**
+     * @param input
+     *            The new input of the speaker
+     */
+    public void onInputChanged(String input);
+
 }

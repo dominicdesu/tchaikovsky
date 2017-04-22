@@ -27,6 +27,7 @@ import org.alljoyn.bus.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.kaizencode.tchaikovsky.businterface.InputSelectorInterface;
 import de.kaizencode.tchaikovsky.businterface.MCUInterface;
 import de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface;
 import de.kaizencode.tchaikovsky.businterface.VolumeInterface;
@@ -195,7 +196,7 @@ public class SpeakerBusHandler implements SpeakerConnectionListener {
     private ProxyBusObject getProxyBusObject() {
         ProxyBusObject proxyBusObject = busAttachment.getProxyBusObject(hostName, OBJECT_PATH, sessionId.value,
                 new Class<?>[] { MediaPlayerInterface.class, VolumeInterface.class, ZoneManagerInterface.class,
-                        MCUInterface.class });
+                        MCUInterface.class, InputSelectorInterface.class });
         logger.debug("Created ProxyBusObject BusName [" + proxyBusObject.getBusName() + "], object path ["
                 + proxyBusObject.getObjPath() + "]");
         return proxyBusObject;

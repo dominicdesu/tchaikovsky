@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.kaizencode.tchaikovsky.bus.SpeakerBusHandler;
+import de.kaizencode.tchaikovsky.businterface.InputSelectorInterface;
 import de.kaizencode.tchaikovsky.businterface.MCUInterface;
 import de.kaizencode.tchaikovsky.businterface.MediaPlayerInterface;
 import de.kaizencode.tchaikovsky.businterface.VolumeInterface;
@@ -32,6 +33,7 @@ import de.kaizencode.tchaikovsky.exception.ConnectionException;
 import de.kaizencode.tchaikovsky.exception.SpeakerException;
 import de.kaizencode.tchaikovsky.listener.SpeakerChangedListener;
 import de.kaizencode.tchaikovsky.listener.SpeakerConnectionListener;
+import de.kaizencode.tchaikovsky.speaker.Input;
 import de.kaizencode.tchaikovsky.speaker.PlaylistItem;
 import de.kaizencode.tchaikovsky.speaker.Speaker;
 import de.kaizencode.tchaikovsky.speaker.SpeakerDetails;
@@ -52,6 +54,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     private final SpeakerDetails details;
     private Volume volume;
     private ZoneManager zoneManager;
+    private Input input;
 
     public RemoteSpeaker(SpeakerBusHandler bus, SpeakerDetails details) {
         this.busHandler = bus;
@@ -86,6 +89,7 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
         volume = new RemoteVolume(allPlayObject.getInterface(VolumeInterface.class));
         zoneManager = new RemoteZoneManager(allPlayObject.getInterface(ZoneManagerInterface.class));
         mcuInterface = allPlayObject.getInterface(MCUInterface.class);
+        input = new RemoteInput(allPlayObject.getInterface(InputSelectorInterface.class));
 
         // For an unknown reason, it is necessary to perform at least one method call
         // after registering the signal handler, else the signal handler will not receive any updates
@@ -133,6 +137,11 @@ public class RemoteSpeaker implements Speaker, SpeakerConnectionListener {
     @Override
     public ZoneManager zoneManager() {
         return zoneManager;
+    }
+
+    @Override
+    public Input input() {
+        return input;
     }
 
     @Override

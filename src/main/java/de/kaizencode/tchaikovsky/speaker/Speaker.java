@@ -273,6 +273,11 @@ public interface Speaker {
     ZoneManager zoneManager();
 
     /**
+     * @return The {@link Input} of the speaker.
+     */
+    Input input();
+
+    /**
      * Adds a listener which is notified when the state of the speaker changes.
      * 
      * @param listener
