@@ -16,15 +16,18 @@
  */
 package de.kaizencode.tchaikovsky.speaker.remote;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.alljoyn.bus.annotation.Position;
 import org.alljoyn.bus.annotation.Signature;
 
+import de.kaizencode.tchaikovsky.AllPlay;
 import de.kaizencode.tchaikovsky.speaker.ZoneItem;
 
 public class RemoteZoneItem implements ZoneItem {
-    
+
     @Position(0)
     @Signature("s")
     public String zoneId;
@@ -35,7 +38,7 @@ public class RemoteZoneItem implements ZoneItem {
 
     @Position(2)
     @Signature("a{si}")
-    public Map<String,Integer> slaves;
+    public Map<String, Integer> slaves;
 
     @Override
     public String getZoneId() {
@@ -46,10 +49,18 @@ public class RemoteZoneItem implements ZoneItem {
     public int getZoneTimestamp() {
         return zoneTimestamp;
     }
-    
+
     @Override
-    public Map<String,Integer> getSlaves() {
-        return slaves;
+    public Map<String, Integer> getSlaves() {
+        return getSlaveMapWithoutPrefix();
     }
 
+    private Map<String, Integer> getSlaveMapWithoutPrefix() {
+        Map<String, Integer> slavesMap = new HashMap<>();
+        for (Entry<String, Integer> entry : slaves.entrySet()) {
+            String key = entry.getKey().replaceFirst(AllPlay.WELL_KNOWN_NAME_PREFIX, "");
+            slavesMap.put(key, entry.getValue());
+        }
+        return slavesMap;
+    }
 }

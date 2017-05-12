@@ -17,9 +17,11 @@
 package de.kaizencode.tchaikovsky.bussignal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.alljoyn.bus.BusAttachment;
@@ -27,6 +29,7 @@ import org.alljoyn.bus.annotation.BusSignalHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.kaizencode.tchaikovsky.AllPlay;
 import de.kaizencode.tchaikovsky.bus.SpeakerBusHandler;
 import de.kaizencode.tchaikovsky.exception.SpeakerException;
 import de.kaizencode.tchaikovsky.listener.SpeakerChangedListener;
@@ -139,7 +142,7 @@ public class MediaPlayerSignalHandler {
     public void onZoneChanged(String zoneId, int timestamp, Map<String, Integer> slaves) {
         logSignalReceived("Zone changed");
         for (SpeakerChangedListener listener : findListeners()) {
-            listener.onZoneChanged(zoneId, timestamp, slaves);
+            listener.onZoneChanged(zoneId, timestamp, getSlaveMapWithoutPrefix(slaves));
         }
     }
 
@@ -165,6 +168,15 @@ public class MediaPlayerSignalHandler {
         if (logger.isDebugEnabled()) {
             logger.debug(busAttachment.getMessageContext().sender + ": Bus signal received [" + signalName + "]");
         }
+    }
+
+    private Map<String, Integer> getSlaveMapWithoutPrefix(Map<String, Integer> slaves) {
+        Map<String, Integer> slavesMap = new HashMap<>();
+        for (Entry<String, Integer> entry : slaves.entrySet()) {
+            String key = entry.getKey().replaceFirst(AllPlay.WELL_KNOWN_NAME_PREFIX, "");
+            slavesMap.put(key, entry.getValue());
+        }
+        return slavesMap;
     }
 
 }

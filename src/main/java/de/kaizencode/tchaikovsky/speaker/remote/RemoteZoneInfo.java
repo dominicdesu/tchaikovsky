@@ -21,6 +21,7 @@ import org.alljoyn.bus.Variant;
 import org.alljoyn.bus.annotation.Position;
 import org.alljoyn.bus.annotation.Signature;
 
+import de.kaizencode.tchaikovsky.AllPlay;
 import de.kaizencode.tchaikovsky.speaker.ZoneInfo;
 
 public class RemoteZoneInfo implements ZoneInfo {
@@ -64,7 +65,7 @@ public class RemoteZoneInfo implements ZoneInfo {
     public String getLeadPlayerID() {
         try {
             if ("s".equals(leadPlayerName.getSignature())) {
-                return leadPlayerName.getObject(String.class).replaceAll("net.allplay.MediaPlayer.i", "");
+                return leadPlayerName.getObject(String.class).replaceAll(AllPlay.WELL_KNOWN_NAME_PREFIX, "");
             }
         } catch (BusException e) {
             // TODO Auto-generated catch block
